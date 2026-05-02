@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OMR 2026 · CulturePulse</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #1F3A5F;
+  --navy-2:  #162D4A;
+  --navy-3:  #0F2038;
+  --sky:     #338FFB;
+  --sky-dim: rgba(51,143,251,0.18);
+  --mint:    #84F7CA;
+  --mint-dim:rgba(132,247,202,0.15);
+  --salmon:  #FF9C85;
+  --white:   #FFFFFF;
+  --off:     #E8EFF8;
+  --muted:   rgba(232,239,248,0.55);
+  --border:  rgba(51,143,251,0.2);
+  --border-s:rgba(51,143,251,0.35);
+  --card:    rgba(255,255,255,0.05);
+  --card-hi: rgba(255,255,255,0.09);
+
+  /* slot colors */
+  --col-mc:    #338FFB;
+  --col-expo:  #84F7CA;
+  --col-pause: #FF9C85;
+  --col-abend: #C3B1F0;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+html,body {
+  min-height:100%;
+  background: var(--navy-3);
+  color: var(--white);
+  font-family:'Inter',sans-serif;
+  overscroll-behavior:none;
+}
+
+/* ── NAV ─────────────────────────────────────── */
+nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:100;
+  background:var(--navy-3);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button {
+  flex:1; padding:10px 4px 12px;
+  border:none; background:none;
+  color:var(--muted);
+  font-family:'Inter',sans-serif; font-size:10px; font-weight:500;
+  letter-spacing:.6px; text-transform:uppercase;
+  cursor:pointer; transition:color .15s;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+nav button svg { width:20px; height:20px; transition:stroke .15s; stroke:var(--muted); }
+nav button.active { color:var(--mint); }
+nav button.active svg { stroke:var(--mint); }
+
+/* ── PAGES ───────────────────────────────────── */
+.page { display:none; min-height:100vh; padding-bottom:80px; }
+.page.active { display:block; }
+
+/* ── PAGE HEADER ─────────────────────────────── */
+.ph {
+  padding:20px 20px 18px;
+  background:var(--navy-2);
+  border-bottom:1px solid var(--border);
+}
+.ph-eye {
+  font-family:'Inter',sans-serif; font-size:10px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--sky); margin-bottom:5px;
+}
+.ph h1 {
+  font-family:'Sora',sans-serif; font-size:26px; font-weight:700;
+  color:var(--white); line-height:1.1;
+}
+.ph p { font-size:13px; color:var(--muted); margin-top:5px; line-height:1.5; }
+
+/* ── DAY TABS ────────────────────────────────── */
+.day-tabs {
+  display:flex; margin:14px 16px 0;
+  background:var(--navy-2); border-radius:10px; padding:3px;
+  border:1px solid var(--border);
+}
+.day-tab {
+  flex:1; padding:9px;
+  border:none; background:none;
+  color:var(--muted);
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:500;
+  border-radius:8px; cursor:pointer; transition:all .2s;
+}
+.day-tab.active { background:var(--sky); color:var(--white); font-weight:600; }
+
+/* ── GOAL BANNER ─────────────────────────────── */
+.goal {
+  margin:14px 16px;
+  background:var(--mint-dim);
+  border:1px solid var(--mint);
+  border-radius:12px; padding:14px 16px;
+}
+.goal-label {
+  font-size:10px; font-weight:600; letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--mint); margin-bottom:5px;
+}
+.goal-value {
+  font-family:'Sora',sans-serif; font-size:16px; font-weight:600;
+  color:var(--white); line-height:1.3;
+}
+
+/* ── TIMELINE ────────────────────────────────── */
+.timeline { padding:4px 16px 0; }
+.tl-item { display:flex; gap:14px; padding:12px 0; position:relative; }
+.tl-item:not(:last-child)::after {
+  content:''; position:absolute;
+  left:9px; top:34px; bottom:0; width:2px;
+  background:var(--border);
+}
+.tl-dot {
+  width:20px; height:20px; border-radius:50%; flex-shrink:0; margin-top:2px;
+  border:2px solid var(--navy-3);
+}
+.tl-dot.mc    { background:var(--col-mc); box-shadow:0 0 0 1px var(--col-mc); }
+.tl-dot.expo  { background:var(--col-expo); box-shadow:0 0 0 1px var(--col-expo); }
+.tl-dot.pause { background:var(--col-pause); box-shadow:0 0 0 1px var(--col-pause); }
+.tl-dot.abend { background:var(--col-abend); box-shadow:0 0 0 1px var(--col-abend); }
+.tl-content { flex:1; }
+.tl-type {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  margin-bottom:2px;
+}
+.tl-type.mc    { color:var(--col-mc); }
+.tl-type.expo  { color:var(--col-expo); }
+.tl-type.pause { color:var(--col-pause); }
+.tl-type.abend { color:var(--col-abend); }
+.tl-time { font-size:11px; color:var(--muted); font-weight:500; margin-bottom:3px; }
+.tl-title { font-size:15px; font-weight:600; color:var(--white); line-height:1.3; }
+.tl-sub  { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.6; }
+
+.tl-hotspot {
+  margin-top:10px;
+  background:var(--sky-dim);
+  border:1px solid var(--border-s);
+  border-radius:10px; padding:10px 12px;
+}
+.tl-hs-title {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--sky); margin-bottom:7px;
+}
+.tl-hs-item {
+  font-size:12px; color:var(--off);
+  padding:3px 0; display:flex; gap:7px; line-height:1.4;
+  border-bottom:1px solid rgba(51,143,251,0.12);
+}
+.tl-hs-item:last-child { border-bottom:none; }
+.tl-hs-item::before { content:'→'; color:var(--sky); flex-shrink:0; font-weight:600; }
+
+/* ── PITCH ───────────────────────────────────── */
+.pitch-card {
+  margin:14px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+}
+.pitch-head {
+  padding:14px 16px 12px;
+  background:var(--navy-2);
+  border-bottom:1px solid var(--border);
+}
+.pitch-head .p-label {
+  font-size:10px; font-weight:600; letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--sky); margin-bottom:4px;
+}
+.pitch-head h2 {
+  font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:var(--white);
+}
+.pitch-head .p-target { font-size:12px; color:var(--muted); margin-top:3px; }
+.pitch-body { padding:16px; }
+.pitch-opener {
+  display:block;
+  font-family:'Sora',sans-serif; font-size:15px; font-weight:600;
+  color:var(--mint); line-height:1.5; margin-bottom:12px;
+}
+.pitch-text { font-size:14px; line-height:1.8; color:var(--off); }
+.pitch-gap { display:block; height:10px; }
+
+.pitch-mechs {
+  padding:12px 16px 14px;
+  border-top:1px solid var(--border);
+  background:rgba(255,255,255,0.03);
+}
+.pm-title {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:8px;
+}
+.pm-item {
+  display:flex; gap:8px; align-items:baseline;
+  padding:4px 0; font-size:13px; color:var(--off);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.pm-item:last-child { border-bottom:none; }
+.pm-item::before { content:'✓'; color:var(--mint); font-size:12px; font-weight:700; flex-shrink:0; }
+
+/* ── REAKTION TABLE ──────────────────────────── */
+.rt-card {
+  margin:14px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+}
+.rt-head {
+  padding:12px 16px;
+  background:var(--navy-2);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.rt-head h2 {
+  font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:var(--white);
+}
+.rt-item {
+  padding:12px 16px; display:flex; gap:12px; align-items:flex-start;
+  border-bottom:1px solid var(--border);
+}
+.rt-item:last-child { border-bottom:none; }
+.rt-trigger {
+  font-size:13px; font-weight:600; color:var(--sky);
+  min-width:100px; flex-shrink:0; line-height:1.4;
+}
+.rt-action { font-size:13px; color:var(--off); line-height:1.5; }
+
+/* ── STAT CARDS ──────────────────────────────── */
+.stat-block { margin:14px 16px; }
+.stat-section-title {
+  font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+  color:var(--sky); margin-bottom:10px; padding:0 2px;
+}
+.stat-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px; margin-bottom:8px;
+  display:flex; gap:14px; align-items:flex-start;
+}
+.stat-num {
+  font-family:'Sora',sans-serif; font-size:24px; font-weight:700;
+  color:var(--mint); line-height:1; min-width:72px; flex-shrink:0;
+}
+.stat-label { font-size:13px; font-weight:500; color:var(--white); line-height:1.4; }
+.stat-source { font-size:11px; color:var(--muted); margin-top:4px; font-style:italic; }
+
+/* ── CONNECT BOX ─────────────────────────────── */
+.connect-box {
+  margin:14px 16px;
+  background:var(--mint-dim);
+  border:1px solid var(--mint);
+  border-radius:12px; padding:16px;
+}
+.connect-box h3 {
+  font-family:'Sora',sans-serif; font-size:15px; font-weight:700;
+  color:var(--mint); margin-bottom:10px;
+}
+.connect-item {
+  font-size:13px; color:var(--white); line-height:1.6;
+  padding:3px 0; display:flex; gap:8px;
+}
+.connect-item::before { content:'→'; color:var(--mint); flex-shrink:0; font-weight:700; }
+
+/* ── MINDSET ─────────────────────────────────── */
+.mindset-card {
+  margin:14px 16px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+}
+.mindset-head {
+  padding:14px 16px;
+  background:var(--navy-2); border-bottom:1px solid var(--border);
+}
+.mindset-head h2 {
+  font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:var(--white);
+}
+.mindset-item {
+  display:flex; gap:10px; padding:13px 16px;
+  font-size:14px; color:var(--off); line-height:1.55;
+  border-bottom:1px solid var(--border);
+}
+.mindset-item:last-child { border-bottom:none; }
+.mindset-item::before { content:'→'; color:var(--sky); flex-shrink:0; font-weight:700; margin-top:1px; }
+
+/* ── NEXT STEPS ──────────────────────────────── */
+.next-item {
+  display:flex; gap:12px; padding:12px 16px;
+  border-bottom:1px solid var(--border);
+}
+.next-item:last-child { border-bottom:none; }
+.next-kw { font-size:12px; font-weight:700; color:var(--sky); min-width:80px; flex-shrink:0; padding-top:1px; }
+.next-text { font-size:13px; color:var(--off); line-height:1.55; }
+
+/* ── URL CARD ────────────────────────────────── */
+.url-card {
+  margin:14px 16px;
+  background:var(--sky-dim); border:1px solid var(--sky);
+  border-radius:14px; padding:20px 16px; text-align:center;
+}
+.url-card .url {
+  font-family:'Sora',sans-serif; font-size:22px; font-weight:700; color:var(--sky);
+}
+.url-card .url-sub { font-size:13px; color:var(--muted); margin-top:6px; }
+
+.gap { height:10px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ PAGE: PLAN -->
+<div class="page active" id="page-plan">
+  <div class="ph">
+    <div class="ph-eye">OMR 2026 · 5. & 6. Mai · Hamburg</div>
+    <h1>Tagesplan</h1>
+    <p>Masterclasses als Anker · Expo-Floor für Piloten</p>
+  </div>
+
+  <div class="day-tabs">
+    <button class="day-tab active" onclick="showDay(0,this)">Di · 5. Mai</button>
+    <button class="day-tab" onclick="showDay(1,this)">Mi · 6. Mai</button>
+  </div>
+
+  <!-- DAY 0 -->
+  <div id="day-0">
+    <div class="goal">
+      <div class="goal-label">Tagesziel</div>
+      <div class="goal-value">3–5 qualifizierte Gespräche mit klarem Next Step</div>
+    </div>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot pause"></div>
+        <div class="tl-content">
+          <div class="tl-type pause">Ankommen</div>
+          <div class="tl-time">08:30 – 09:30</div>
+          <div class="tl-title">Orientierung & Warm-up</div>
+          <div class="tl-sub">Hallen A4 + B1 lokalisieren · Pitch nochmals im Kopf durchgehen · Kaffee schwarz</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot expo"></div>
+        <div class="tl-content">
+          <div class="tl-type expo">Expo Block 1</div>
+          <div class="tl-time">09:30 – 10:20</div>
+          <div class="tl-title">Erster Expo-Run</div>
+          <div class="tl-sub">Orientierung, 1–2 lockere Gespräche. Noch kein Druck — Atmosphäre spüren.</div>
+          <div class="tl-hotspot">
+            <div class="tl-hs-title">Hotspots — Besucher abfangen</div>
+            <div class="tl-hs-item">XING — hoher HR-Entscheider-Durchlauf</div>
+            <div class="tl-hs-item">Sage — Mittelstands-HR, dein ICP steht dort</div>
+            <div class="tl-hs-item">Haufe Akademie — Besucher = HR-Leiter</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot mc"></div>
+        <div class="tl-content">
+          <div class="tl-type mc">Masterclass</div>
+          <div class="tl-time">10:30 – 11:30 · Halle A4 · Shopify</div>
+          <div class="tl-title">Product Discovery</div>
+          <div class="tl-sub">Framing-Ansätze für CulturePulse mitnehmen. Sitznachbarn ansprechen — viele sind Entscheider aus Mittelstandsunternehmen.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot pause"></div>
+        <div class="tl-content">
+          <div class="tl-type pause">Pause</div>
+          <div class="tl-time">11:30 – 12:30</div>
+          <div class="tl-title">Mittagspause + Marcus/Till-Sync</div>
+          <div class="tl-sub">Notizen zum Vormittag · Leads nicht doppeln · Energie für den Hauptblock aufbauen</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot expo"></div>
+        <div class="tl-content">
+          <div class="tl-type expo">Expo Block 2 — Kernzeit</div>
+          <div class="tl-time">12:30 – 16:30</div>
+          <div class="tl-title">Hauptblock: Aktives Networking</div>
+          <div class="tl-sub">Pitch A. Ziel: 3–4 Kontakte mit Pilot-Interesse oder Waitlist. Besucher im Durchgang ansprechen, nicht an Ständen.</div>
+          <div class="tl-hotspot">
+            <div class="tl-hs-title">ICP-Hotspots Tier 1</div>
+            <div class="tl-hs-item">Fielmann Group AG — Retail-Mittelstand, Kulturthema</div>
+            <div class="tl-hs-item">BRITA SE — Klassischer Mittelstand, international</div>
+            <div class="tl-hs-item">Motel One — Servicekultur = existenzielles Thema</div>
+            <div class="tl-hs-item">Mr. Wash Autoservice AG — genau ICP-Größe</div>
+            <div class="tl-hs-item">Rügenwalder Mühle — Familienunternehmen Mittelstand</div>
+            <div class="tl-hs-item">Warsteiner — Traditionsunternehmen</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot mc"></div>
+        <div class="tl-content">
+          <div class="tl-type mc">Masterclass</div>
+          <div class="tl-time">16:45 – 17:45 · Track 24 · Halle B1</div>
+          <div class="tl-title">Bye-bye Buy-Button: Agentic Commerce</div>
+          <div class="tl-sub">Gesprächsthema für den Abend: "Was bedeutet das für eure Belegschaft?" → Einstieg ins KI-Angst-Narrativ.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot abend"></div>
+        <div class="tl-content">
+          <div class="tl-type abend">Abend</div>
+          <div class="tl-time">ab 18:00</div>
+          <div class="tl-title">Stand-Partys & Networking</div>
+          <div class="tl-sub">Pitch-Modus aus, Gesprächs-Modus an. Brevo/Globalist-Party (A4 D04, Open Bar) als Startpunkt. Mit Marcus & Till koordinieren.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DAY 1 -->
+  <div id="day-1" style="display:none;">
+    <div class="goal">
+      <div class="goal-label">Tagesziel</div>
+      <div class="goal-value">2–3 neue Kontakte + offene Follow-ups aus Tag 1 schließen</div>
+    </div>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot pause"></div>
+        <div class="tl-content">
+          <div class="tl-type pause">Start</div>
+          <div class="tl-time">08:30 – 09:15</div>
+          <div class="tl-title">Follow-ups aus Tag 1</div>
+          <div class="tl-sub">LinkedIn-Requests bestätigen + kurze persönliche Nachricht, solange der Kontext noch frisch ist.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot expo"></div>
+        <div class="tl-content">
+          <div class="tl-type expo">Expo Block 3</div>
+          <div class="tl-time">09:15 – 12:00</div>
+          <div class="tl-title">Zweiter Expo-Run — gezielt</div>
+          <div class="tl-sub">Nur noch Tier-1-Kandidaten, die Tag 1 noch nicht erreicht wurden. Qualität vor Quantität.</div>
+          <div class="tl-hotspot">
+            <div class="tl-hs-title">ICP-Hotspots Tier 1 (falls noch offen)</div>
+            <div class="tl-hs-item">Baker Tilly / KPMG — Retention-Druck bei Beratungen</div>
+            <div class="tl-hs-item">EGYM Wellpass — HR-Einkäufer als Besucher</div>
+            <div class="tl-hs-item">Techniker Krankenkasse — Mittelstandskontakte</div>
+            <div class="tl-hs-item">weclapp — GF/HR aus KMU stehen dort</div>
+            <div class="tl-hs-item">Pleo / Scalable Capital — Kulturaufbau im Gange</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot mc"></div>
+        <div class="tl-content">
+          <div class="tl-type mc">Masterclass</div>
+          <div class="tl-time">12:15 – 13:15 · Track 24 · Halle B1</div>
+          <div class="tl-title">SaaS mutiert: AI Agents erfinden Enterprise Software neu</div>
+          <div class="tl-sub">Direkt relevant für Culture COACH Vision. Frage mitbringen: Wie sehen Entscheider AI Agents in HR-Software?</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot expo"></div>
+        <div class="tl-content">
+          <div class="tl-type expo">Expo Block 4 — Final</div>
+          <div class="tl-time">13:15 – 15:00</div>
+          <div class="tl-title">Letzter Expo-Block</div>
+          <div class="tl-sub">Offene Gespräche schließen. Direkte Frage stellen: "Soll ich dir nach der Messe eine kurze Demo-Einladung schicken?" — klares Ja oder Nein einholen.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot mc"></div>
+        <div class="tl-content">
+          <div class="tl-type mc">Masterclass</div>
+          <div class="tl-time">15:15 – 16:15 · Track 08 · Halle B2</div>
+          <div class="tl-title">Der agentische Stack: KI-Workflows & skalierbare Systeme</div>
+          <div class="tl-sub">Technischer Deep Dive für Produktvision. Viele Product Manager im Raum — mögliche Sparring-Partner für Culture COACH.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot pause"></div>
+        <div class="tl-content">
+          <div class="tl-type pause">Abschluss</div>
+          <div class="tl-time">16:15 – 17:00</div>
+          <div class="tl-title">Retro & Abschluss-Sync</div>
+          <div class="tl-sub">Mit Marcus & Till: Leads zusammenführen, Follow-up-Aufgaben verteilen. Gesamtziel: 5–8 qualifizierte Kontakte mit Next Step.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot abend"></div>
+        <div class="tl-content">
+          <div class="tl-type abend">Abend (optional)</div>
+          <div class="tl-time">ab 18:00</div>
+          <div class="tl-title">Networking oder Abreise</div>
+          <div class="tl-sub">Zweiter Abend oft ruhiger — manchmal die besten Gespräche. Wenn Energie fehlt: früh abreisen und ausgeruht Follow-ups angehen.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="gap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ PAGE: PITCH -->
+<div class="page" id="page-pitch">
+  <div class="ph">
+    <div class="ph-eye">CulturePulse · Pitches</div>
+    <h1>60-Sekunden-Pitches</h1>
+    <p>Version A für HR-Entscheider · Version B für Partner</p>
+  </div>
+
+  <div class="gap"></div>
+
+  <div class="pitch-card">
+    <div class="pitch-head">
+      <div class="p-label">Version A</div>
+      <h2>HR-Entscheider direkt</h2>
+      <div class="p-target">HR-Leiter, Personalvorstand, Geschäftsführer (50–500 MA)</div>
+    </div>
+    <div class="pitch-body">
+      <span class="pitch-opener">"Sag mal — wie misst ihr eigentlich gerade, wie's eurer Unternehmenskultur geht? Nicht Bauchgefühl, sondern wirklich?"</span>
+      <div class="pitch-text">
+        [kurze Pause, Antwort abwarten]
+        <span class="pitch-gap"></span>
+        "Genau das ist das Problem. Die meisten Unternehmen merken erst, dass die Kultur kippt, wenn die Kündigungen kommen. Und eine Kündigung kostet — je nach Position — zwischen 40.000 und 130.000 Euro. Bei 10 % Fluktuation summiert sich das schnell.
+        <span class="pitch-gap"></span>
+        Wir haben CulturePulse gebaut, um genau das zu verhindern. Kurze Pulse Surveys, DSGVO-nativ, direkt für den deutschen Mittelstand. Die Ergebnisse zeigen HR sofort, wo es hakt — und liefern konkrete Handlungsempfehlungen, nicht nur Zahlen.
+        <span class="pitch-gap"></span>
+        Gerade jetzt, wo KI die komplette Arbeitswelt umkrempelt und die Hälfte der Belegschaft sich fragt ob ihr Job noch sicher ist — sind die Unternehmen im Vorteil, die ihre Kultur aktiv managen und ihren Leuten Orientierung geben.
+        <span class="pitch-gap"></span>
+        Wir starten gerade mit Piloten. Wäre das was für euch?"
+      </div>
+    </div>
+    <div class="pitch-mechs">
+      <div class="pm-title">Schlüssel-Mechanik</div>
+      <div class="pm-item">Eröffnungsfrage erzeugt Dialog — kein Monolog</div>
+      <div class="pm-item">Schmerz benennen bevor Lösung kommt</div>
+      <div class="pm-item">DSGVO-nativ & Mittelstand = Positionierung vs. US-Tools</div>
+      <div class="pm-item">KI-Angst-Narrativ: zeitgemäß und differenzierend</div>
+      <div class="pm-item">Klarer CTA: Pilot</div>
+    </div>
+  </div>
+
+  <div class="pitch-card">
+    <div class="pitch-head" style="background:#162D4A;">
+      <div class="p-label" style="color:var(--salmon);">Version B</div>
+      <h2>Multiplikator / Partner</h2>
+      <div class="p-target">HR-Beratung, Employer Branding Agentur, Unternehmensberater</div>
+    </div>
+    <div class="pitch-body">
+      <span class="pitch-opener" style="color:var(--salmon);">"Ihr habt sicher Kunden, bei denen Kultur gerade ein echtes Thema ist — Fachkräftemangel, KI-Unsicherheit in der Belegschaft, steigende Fluktuation."</span>
+      <div class="pitch-text">
+        "Das Problem: Die meisten wissen nicht, wo genau es hakt. Gefühl ja, Daten nein.
+        <span class="pitch-gap"></span>
+        Wir haben CulturePulse gebaut — ein Pulse Survey Tool, das Unternehmenskultur messbar macht. Speziell für den deutschen Mittelstand, DSGVO-nativ, mit konkreten Handlungsempfehlungen direkt aus der Plattform.
+        <span class="pitch-gap"></span>
+        Wir suchen Partner, die das als Einstieg in ihre Kulturberatung nutzen wollen. Ihr habt den Kundenzugang und die Beziehung — wir haben das Tool und die Methodik.
+        <span class="pitch-gap"></span>
+        Kurze Frage: Habt ihr aktuell Kunden, bei denen Fluktuation oder KI-Transformation ein Thema ist?"
+      </div>
+    </div>
+    <div class="pitch-mechs">
+      <div class="pm-title">Schlüssel-Mechanik</div>
+      <div class="pm-item">Partner-Perspektive einnehmen — nicht pitchen</div>
+      <div class="pm-item">"Ihr habt den Kundenzugang" = Wertschätzung ihrer Stärke</div>
+      <div class="pm-item">Schlussfrage qualifizierend, nicht verkaufend</div>
+      <div class="pm-item">Wenn ja → tiefer. Wenn nein → Kontakt halten</div>
+    </div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-head">
+      <h2>Nach dem Pitch — was dann?</h2>
+    </div>
+    <div class="rt-item">
+      <div class="rt-trigger">Pilot-Interesse</div>
+      <div class="rt-action">LinkedIn + Follow-up Mail nächste Woche → 30-Min-Demo buchen</div>
+    </div>
+    <div class="rt-item">
+      <div class="rt-trigger">Interesse, kein Pilot</div>
+      <div class="rt-action">Waitlist culture-pulse.app → Newsletter + Launch-Info</div>
+    </div>
+    <div class="rt-item">
+      <div class="rt-trigger">"Schick mir was zu"</div>
+      <div class="rt-action">1-Pager per Mail · kurz halten · persönliche Zeile dazu</div>
+    </div>
+    <div class="rt-item">
+      <div class="rt-trigger">Kein Interesse</div>
+      <div class="rt-action">Höflich beenden · nächste Person · nicht nachhaken</div>
+    </div>
+  </div>
+
+  <div class="gap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ PAGE: ZAHLEN -->
+<div class="page" id="page-zahlen">
+  <div class="ph">
+    <div class="ph-eye">CulturePulse · Cheat Sheet</div>
+    <h1>Zahlen & Fakten</h1>
+    <p>Zum Verinnerlichen, nicht zum Vorlesen</p>
+  </div>
+
+  <div class="gap"></div>
+
+  <div class="stat-block">
+    <div class="stat-section-title">Fluktuation & Kosten</div>
+
+    <div class="stat-card">
+      <div class="stat-num">43K€</div>
+      <div class="stat-info">
+        <div class="stat-label">Durchschnittliche Kosten pro Mitarbeiterabgang — Tendenz steigend</div>
+        <div class="stat-source">Urban Sports Club / Honestly 2025</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">130K€</div>
+      <div class="stat-info">
+        <div class="stat-label">Bis zu 130.000 € bei Fachkräften (direkte + indirekte Kosten)</div>
+        <div class="stat-source">StepStone-Studie, Handelsblatt</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">142 Mrd</div>
+      <div class="stat-info">
+        <div class="stat-label">Produktivitätsverlust durch innere Kündigung in Deutschland p.a.</div>
+        <div class="stat-source">Gallup Engagement Index 2025</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">27,7%</div>
+      <div class="stat-info">
+        <div class="stat-label">Unpassende Unternehmenskultur = Top-5-Kündigungsgrund</div>
+        <div class="stat-source">Gallup / Honestly-Analyse</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">768K</div>
+      <div class="stat-info">
+        <div class="stat-label">Fehlende Fachkräfte bis 2028 in Deutschland</div>
+        <div class="stat-source">IW Köln 2024</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">15%</div>
+      <div class="stat-info">
+        <div class="stat-label">Nur 15 % der deutschen Arbeitnehmer sind wirklich engagiert</div>
+        <div class="stat-source">Gallup State of Global Workforce 2024</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gap"></div>
+
+  <div class="stat-block">
+    <div class="stat-section-title">KI-Angst in der Belegschaft</div>
+
+    <div class="stat-card">
+      <div class="stat-num">46%</div>
+      <div class="stat-info">
+        <div class="stat-label">In KI-affinen Unternehmen sorgt sich fast jeder Zweite um den eigenen Job</div>
+        <div class="stat-source">BCG AI at Work 2025</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">36%</div>
+      <div class="stat-info">
+        <div class="stat-label">Nur 36 % der deutschen Arbeitnehmer fühlen sich ausreichend auf KI vorbereitet</div>
+        <div class="stat-source">BCG AI at Work 2025</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">50%+</div>
+      <div class="stat-info">
+        <div class="stat-label">Mehr als die Hälfte der KI-Nutzer empfindet ihre Arbeit als unsicherer</div>
+        <div class="stat-source">Pronova BKK "Arbeiten 2025" (Jan. 2026)</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">45%</div>
+      <div class="stat-info">
+        <div class="stat-label">Befürchten Jobverluste durch KI — nur 39 % vertrauen KI-Ergebnissen</div>
+        <div class="stat-source">FOM Hochschule 2025</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connect-box">
+    <h3>Der Verbindungspunkt</h3>
+    <div class="connect-item">Kulturprobleme sind messbar teuer — und KI macht sie gerade akuter</div>
+    <div class="connect-item">Unternehmen die Kultur aktiv managen, gewinnen Vertrauen der Belegschaft</div>
+    <div class="connect-item">Das ist der Moment für CulturePulse — nicht irgendwann, sondern jetzt</div>
+  </div>
+
+  <div class="gap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ PAGE: MINDSET -->
+<div class="page" id="page-mindset">
+  <div class="ph">
+    <div class="ph-eye">CulturePulse · OMR 2026</div>
+    <h1>Mindset & Ziele</h1>
+    <p>Das Wichtigste für die zwei Tage</p>
+  </div>
+
+  <div class="gap"></div>
+
+  <div class="goal">
+    <div class="goal-label">Gesamtziel 2 Tage</div>
+    <div class="goal-value">5–8 qualifizierte Kontakte mit konkretem Next Step</div>
+  </div>
+
+  <div class="mindset-card">
+    <div class="mindset-head"><h2>Prinzipien</h2></div>
+    <div class="mindset-item">Du bist nicht da um zu verkaufen — du bist da um Probleme zu entdecken</div>
+    <div class="mindset-item">Jedes gute Gespräch ist ein Gewinn, auch ohne Visitenkarte</div>
+    <div class="mindset-item">3–5 qualifizierte Gespräche schlagen 20 oberflächliche Kontakte</div>
+    <div class="mindset-item">Masterclasses = Energie tanken + Gesprächsthemen für danach</div>
+    <div class="mindset-item">Abend-Networking: lockerer als tagsüber — oft die besten Gespräche</div>
+    <div class="mindset-item">Marcus & Till synchronisieren: keine Doppelkontakte, aber Leads teilen</div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-head"><h2>Next Steps nach der Messe</h2></div>
+    <div class="next-item">
+      <div class="next-kw">Tag 1 Abend</div>
+      <div class="next-text">LinkedIn-Requests bestätigen + kurze persönliche Nachricht, Kontext ist noch frisch</div>
+    </div>
+    <div class="next-item">
+      <div class="next-kw">Tag 2 Abend</div>
+      <div class="next-text">Leads mit Marcus/Till zusammenführen, Follow-up-Aufgaben verteilen</div>
+    </div>
+    <div class="next-item">
+      <div class="next-kw">KW 20</div>
+      <div class="next-text">Follow-up Mails raus · Demo-Termine buchen · Waitlist-Leads pflegen</div>
+    </div>
+    <div class="next-item">
+      <div class="next-kw">KW 21+</div>
+      <div class="next-text">Pilot-Onboarding starten · Learnings aus Gesprächen in Produkt einfließen lassen</div>
+    </div>
+  </div>
+
+  <div class="url-card">
+    <div class="url">culture-pulse.app</div>
+    <div class="url-sub">Waitlist für Interessierte ohne Pilot-Commitment</div>
+  </div>
+
+  <div class="gap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ NAV -->
+<nav>
+  <button class="active" onclick="showPage('plan',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Plan
+  </button>
+  <button onclick="showPage('pitch',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Pitches
+  </button>
+  <button onclick="showPage('zahlen',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Zahlen
+  </button>
+  <button onclick="showPage('mindset',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Mindset
+  </button>
+</nav>
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+function showDay(idx, btn) {
+  document.getElementById('day-0').style.display = idx === 0 ? 'block' : 'none';
+  document.getElementById('day-1').style.display = idx === 1 ? 'block' : 'none';
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
